@@ -284,3 +284,279 @@ void query(int o,int L,int R){
         if(yy2>M)query(o*2+1,M+1,R);
     }
 }
+
+
+
+//Trie字典树,未对拍测试
+struct Trie{
+    int ch[maxnode][sigma_size];
+    int val[maxnode];
+    int sz;
+    Trie(){
+        sz = 1;memset(ch[0],0,sizeof(ch[0]));
+    }
+    int idx(char c){
+        return c-'a';
+    }
+
+    void insert(char *s,int v){
+        int u = 0, n = strlen(s);
+        for(int i=0;i<n;i++){
+            int c=idx(s[i]);
+            if(!ch[u][c]){
+                memset(ch[sz],0,sizeof(ch[sz]));
+                val[sz] = 0;
+                ch[u][c] = sz++;
+            }
+            u = ch[u][c];
+        }
+        val[u] = v;
+    }
+};
+
+//KMP字符串匹配，未对拍测试
+void getFail(char *P,int *f){
+    int m = strlen(P);
+    f[0] = 0;f[1] =0;
+    for(int i=1;i<m;i++){
+        int j= f[i];
+        while(j&&P[i]!=P[j])j=f[j];
+        f[i+1]=P[i]==P[j]?j+1:0;
+    }
+}
+void find(char *T,char *P,int *f){
+    int n = strlen(T), m = strlen(P);
+    getFail(P,f);
+    int j = 0;
+    for(int i=0;i<n;i++){
+        while(j&&P[j]!=T[i])j=f[j];
+        if(P[j]==T[i])j++;
+        if(j==m)printf("%d\n",i-m+1);
+    }
+}
+
+//AC自动机
+//hdu 2222在主串中统计模式串们出现的总次数
+
+const int maxn = 1000000 + 100;
+int n,ans;
+const int SIGMA_SIZE = 51;
+const int maxnode = 1000000 + 100;
+
+bool vis[maxn];
+map<string, int >ms;
+int ch[maxnode][SIGMA_SIZE+5];
+int val[maxnode];
+int idx(char c){
+    return c - 'a';
+}
+struct Trie{
+    int sz;
+    Trie(){
+        sz = 1;memset(ch[0],0,sizeof(ch[0]));memset(vis,0,sizeof(vis));
+    }
+    void insert(char *s){
+        int u = 0, n = strlen(s);
+        for(int i=0;i<n;i++){
+            int c = idx(s[i]);
+            if(!ch[u][c]){
+                memset(ch[sz],0,sizeof(ch[sz]));
+                ch[u][c] = sz++;
+            }
+            u = ch[u][c];
+        }
+        val[u]++;
+    }
+};
+int last[maxn],f[maxn];
+void print(int j){
+    if(j&&!vis[j]){
+        ans +=val[j];vis[j] = 1;
+        print(last[j]);
+    }
+}
+void getFail(){
+    queue<int>q;
+    f[0] = 0;
+    for(int c = 0;c<SIGMA_SIZE;c++){
+        int u = ch[0][c];
+        if(u){
+            f[u] = 0;q.push(u);last[u] = 0;
+        }
+    }
+
+    while(!q.empty()){
+        int r=q.front();q.pop();
+        for(int c = 0;c<SIGMA_SIZE;c++){
+            int u=ch[r][c];
+            if(!u){
+                ch[r][c] = ch[f[r]][c];
+                continue;
+            }
+            q.push(u);
+            int v = f[r];
+            while(v&&!ch[v][c])v = f[v];
+            f[u] = ch[v][c];
+            last[u] = val[f[u]]?f[u]:last[f[u]];
+        }
+    }
+}
+
+void find_T(char * T){
+    int n = strlen(T);
+    int j = 0;
+    for(int i=0;i<n;i++){
+        int c = idx(T[i]);
+        j = ch[j][c];
+        if(val[j])print(j);
+        else if(last[j])print(last[j]);
+    }
+}
+char tmp[105];
+char text[1000000+1000];
+
+int main()
+{
+    //freopen("in.txt","r",stdin);
+    int T;
+    cin>>T;
+    while(T--){
+        scanf("%d",&n);
+        Trie trie;
+        memset(val,0,sizeof(val));
+        ans = 0;
+        for(int i=0;i<n;i++){
+            scanf("%s",tmp);
+            trie.insert(tmp);
+        }
+        getFail();
+        scanf("%s",text);
+        find_T(text);
+        cout<<ans<<endl;
+    }
+
+
+
+    return 0;
+}
+
+
+//字典序比较模板
+template<class T>
+bool lexicographicallySmaller(vector<T> a, vector<T> b){
+    int n = a.size();
+    int m = b.size();
+    int i;
+    for(i = 0;i<n&&i<m;i++){
+        if(a[i]<b[i])return true;
+        else if(b[i]<a[i])return false;
+    }
+    return (i==n&&i<m);
+}
+
+//后缀数组1,能求出sa, rk, 复杂度O(n(logn)^2),容易理解
+const int maxn = 200005;
+char s[maxn];
+int sa[maxn];
+int rk[maxn];
+int tmp[maxn+1];
+int n,k;
+bool comp_sa(int i,int j){
+    if(rk[i]!=rk[j])return rk[i]<rk[j];
+    else{
+        int ri = i+k<=n?rk[i+k]:-1;
+        int rj = j+k<=n?rk[j+k]:-1;
+        return ri<rj;
+    }
+}
+void calc_sa(){
+    for(int i=0;i<=n;i++){
+        rk[i] = s[i];
+        sa[i] = i;
+    }
+    for(k=1;k<=n;k=k*2){
+        sort(sa,sa+n,comp_sa);
+        tmp[sa[0]] = 0;
+        for(int i=0;i<n;i++)
+            tmp[sa[i+1]] = tmp[sa[i]]+(comp_sa(sa[i],sa[i+1])?1:0);
+        for(int i=0;i<n;i++){
+            rk[i] = tmp[i];
+        }
+    }
+}
+
+
+//后缀数组2 o(nlogn)比上面的快，基于基数排序算法
+char s[maxn];
+int sa[maxn],c[maxn],t[maxn],t2[maxn],rk[maxn],height[maxn];
+int n;
+void getHeight(){
+    int i,j,k = 0;
+    for(i=0;i<n;i++)rk[sa[i]] = i;
+    for(i=0;i<n;i++){
+        if(k)k--;
+        int j= sa[rk[i]-1];
+        while(s[i+k]==s[j+k])k++;
+        height[rk[i]] = k;
+    }
+}
+void build_sa(int m)
+{
+    int i, *x = t, *y = t2;
+    for ( i = 0; i < m; i++)        c[i] = 0;
+    for ( i = 0; i < n; i++)        c[x[i] = s[i]]++;
+    for ( i = 1; i < m; i++)    c[i] += c[i - 1];
+    for (i = n - 1; i >= 0; i--)    sa[--c[x[i]]] = i;
+    for (int k = 1; k <= n; k <<= 1){
+        int p = 0;
+        for (i = n - k; i < n; i++)
+            y[p++] = i;
+        for (i = 0; i < n; i++){
+            if (sa[i] >= k)
+                y[p++] = sa[i] - k;
+        }
+        for (i = 0; i < m; i++)    c[i] = 0;
+        for (i = 0; i < n; i++)
+            c[x[y[i]]]++;
+        for (i = 0; i < m; i++)
+            c[i] += c[i - 1];
+        for (i = n - 1; i >= 0; i--)
+            sa[--c[x[y[i]]]] = y[i];
+        swap(x, y);
+        p = 1;    x[sa[0]] = 0;
+        for (i = 1; i < n; i++){
+            x[sa[i]] = y[sa[i - 1]] == y[sa[i]] && y[sa[i - 1] + k] == y[sa[i] + k] ? p - 1 : p++;
+        }
+        if (p >= n)    break;
+        m = p;
+    }
+    for(int i=0;i<n;i++)rk[sa[i]] = i;
+    getHeight();
+}
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
