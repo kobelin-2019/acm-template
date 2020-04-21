@@ -486,59 +486,106 @@ void calc_sa(){
 }
 
 
-//后缀数组2 o(nlogn)比上面的快，基于基数排序算法
-char s[maxn];
-int sa[maxn],c[maxn],t[maxn],t2[maxn],rk[maxn],height[maxn];
-int n;
-void getHeight(){
-    int i,j,k = 0;
-    for(i=0;i<n;i++)rk[sa[i]] = i;
-    for(i=0;i<n;i++){
-        if(k)k--;
-        int j= sa[rk[i]-1];
-        while(s[i+k]==s[j+k])k++;
-        height[rk[i]] = k;
-    }
-}
-void build_sa(int m)
+//后缀数组2 o(nlogn)比上面的快，基于基数排序算法 hdu1403
+#include<bits/stdc++.h>
+#define N 200010
+using namespace std;
+ 
+char s[N];
+int sa[N],t[N],t2[N],c[N],n,rak[N],height[N];
+ 
+void build_sa(int m,char *s)
 {
-    int i, *x = t, *y = t2;
-    for ( i = 0; i < m; i++)        c[i] = 0;
-    for ( i = 0; i < n; i++)        c[x[i] = s[i]]++;
-    for ( i = 1; i < m; i++)    c[i] += c[i - 1];
-    for (i = n - 1; i >= 0; i--)    sa[--c[x[i]]] = i;
-    for (int k = 1; k <= n; k <<= 1){
-        int p = 0;
-        for (i = n - k; i < n; i++)
-            y[p++] = i;
-        for (i = 0; i < n; i++){
-            if (sa[i] >= k)
-                y[p++] = sa[i] - k;
-        }
-        for (i = 0; i < m; i++)    c[i] = 0;
-        for (i = 0; i < n; i++)
-            c[x[y[i]]]++;
-        for (i = 0; i < m; i++)
-            c[i] += c[i - 1];
-        for (i = n - 1; i >= 0; i--)
-            sa[--c[x[y[i]]]] = y[i];
-        swap(x, y);
-        p = 1;    x[sa[0]] = 0;
-        for (i = 1; i < n; i++){
-            x[sa[i]] = y[sa[i - 1]] == y[sa[i]] && y[sa[i - 1] + k] == y[sa[i] + k] ? p - 1 : p++;
-        }
-        if (p >= n)    break;
-        m = p;
+    int i,*x=t,*y=t2;
+    for (i=0;i<m;i++)c[i]=0;
+    for (i=0;i<n;i++)c[x[i]=s[i]]++;
+    for (i=1;i<m;i++)c[i]+=c[i-1];
+    for (i=n-1;i>=0;i--)sa[--c[x[i]]]=i;
+    for (int k=1;k<=n;k<<=1)
+    {
+        int p=0;
+        for (i=n-k;i<n;i++)y[p++]=i;
+        for (i=0;i<n;i++)if (sa[i]>=k)y[p++]=sa[i]-k;
+        for (i=0;i<m;i++)c[i]=0;
+        for (i=0;i<n;i++)c[x[y[i]]]++;
+        for (i=0;i<m;i++)c[i]+=c[i-1];
+        for (i=n-1;i>=0;i--) sa[--c[x[y[i]]]]=y[i];
+        swap(x,y);
+        p=1; x[sa[0]]=0;
+        for (i=1;i<n;i++)
+            x[sa[i]]=y[sa[i-1]]==y[sa[i]]&&y[sa[i-1]+k]==y[sa[i]+k]?p-1:p++;
+        if (p>=n) break;
+        m=p;
     }
-    for(int i=0;i<n;i++)rk[sa[i]] = i;
-    getHeight();
 }
-
-
-
-
+ 
+void getheight()
+{
+    int i,j,k=0;
+    for (i=0;i<n;i++)rak[sa[i]]=i;
+    for (i=0;i<n;i++)
+    {
+        if (k)k--;
+        if (!rak[i])continue;
+        j=sa[rak[i]-1];
+        while (s[i+k]==s[j+k])k++;
+        height[rak[i]]=k;
+    }
+}
+ 
+int main()
+{
+    while (~scanf("%s",s))
+    {
+        n=strlen(s);
+        s[n]='0';   int nn=n,ans=0;
+        scanf("%s",s+n+1);
+        n=strlen(s);
+        build_sa(200,s);
+        getheight();
+        for (int i=1;i<n;i++)
+        {
+            int x=sa[i-1],y=sa[i];
+            if (x>y) swap(x,y);
+            if (x<nn && nn<y) ans=max(ans,height[i]);
+        }
+        printf("%d\n",ans);
+    }
+    return 0;
+}
 
     
+//字符串哈希，简单
+unsigned int BKDRHash(char *str){
+    unsigned int seed = 31,key = 0,
+    while(*str)key = key*seed+(*str++);
+    return key&0x7fffffff;
+}
+
+
+//字符串哈希+预处理
+const int maxn = 1000005;
+unsigned long long H[maxn];
+unsigned long long xp[maxn];
+char s[maxn];
+const int x = 131;//随便取个素数
+
+int n,m,pos;
+
+unsigned long long hash[maxn];
+//子串i....j的哈希值
+unsigned long long gethash(int i,int j)
+{
+    int L = j-i+1;
+    return H[i] - H[i+L]*xp[L];
+}
+void init()
+{
+    H[n] = 0;
+    for(int i=n-1;i>=0;i--)H[i] = H[i+1]*x + (s[i]-'a');
+    xp[0] = 1;
+    for(int i=1;i<=n;i++)xp[i] = xp[i-1]*x;
+}
 
 
 
