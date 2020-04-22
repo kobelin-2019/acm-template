@@ -62,6 +62,51 @@ ll pow_mod(ll a,ll p,ll n)
     return ans;
 }
 
+//矩阵快速幂
+struct Mat { ///结构体，矩阵类型
+    int m[M][M];
+} res,e;
+void init_e(){
+    //整数快速幂默认的ans是1，矩阵的话ans应为单位矩阵
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=n;j++) {
+            if(i==j)
+                e.m[i][j]=1;
+            else
+                e.m[i][j]=0;
+        }
+    }
+}
+Mat Mul(Mat a,Mat b,int n) {
+    Mat tmp;//定义一个临时的矩阵，存放A*B的结果
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= n; j++) {
+            tmp.m[i][j] = 0;
+        }
+    }
+    for(itn i=1; i <= n; i++) {
+        for(int j = 1; j <= n; j++) {
+            for(int k = 1; k <= n; k++) {
+                tmp.m[i][j] += a.m[i][k]*b.m[k][j];
+            }
+        }
+    }
+    return tmp;
+}
+///矩阵快速幂，求矩阵res的N次幂
+Mat Mat_qpower(Mat base,int K){
+    res=e;
+    while(K) {
+        if(K&1)
+            res=Mul(res,base);
+        base=Mul(base,base);
+        K=K>>1;
+    }
+    return res;
+}
+
+
+
 //逆元
 ll inv(ll a,ll n){
 
