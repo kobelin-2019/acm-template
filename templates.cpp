@@ -588,8 +588,139 @@ void init()
 }
 
 
+//Treap模板,已测试
+inline int read() {
+    int x = 0, fh = 1; char ch = getchar();
+    for (; !isdigit(ch); ch = getchar()) if (ch == '-') fh = -1;
+    for (; isdigit(ch); ch = getchar()) x = (x * 10) + (ch ^ 48);
+    return x * fh;
+}
+
+const int maxnode = 2e6 + 1e3, inf = 0x7f7f7f7f;
+#define ls(o) ch[o][0]
+#define rs(o) ch[o][1]
+struct Treap {
+    int ch[maxnode][2], val[maxnode], prio[maxnode], cnt[maxnode], cnt_sum[maxnode];
+
+    inline void push_up(int o) {
+        cnt_sum[o] = cnt[o] + cnt_sum[ls(o)] + cnt_sum[rs(o)];
+    }
+
+    void rotate(int &u, int d) {
+        int v = ch[u][d];
+        ch[u][d] = ch[v][d ^ 1]; ch[v][d ^ 1] = u;
+        push_up(u); push_up(v); u = v;
+    }
+
+    inline int New(int val_) {
+        static int Size = 0, o; o = ++ Size;
+        ls(o) = rs(o) = 0; val[o] = val_;
+        cnt_sum[o] = cnt[o] = 1;
+        prio[o] = rand(); return o;
+    }
+
+    void Insert(int &o, int val_) {
+        if (!o) { o = New(val_) ; return ; }
+        if (val[o] == val_) ++ cnt[o];
+        else {
+            int d = (val_ > val[o]);
+            Insert(ch[o][d], val_);
+            if (prio[ch[o][d]] > prio[o]) rotate(o, d);
+        }
+        push_up(o);
+    }
+
+    void Erase(int &o) {
+        if (!ls(o) && !rs(o)) { o = 0; return ; }
+        int d = (prio[rs(o)] > prio[ls(o)]);
+        rotate(o, d); Erase(ch[o][d ^ 1]); push_up(o);
+    }
+
+    void Delete(int &o, int val_) {
+        if (val[o] == val_) { if (!(-- cnt[o])) Erase(o); push_up(o); return ; }
+        int d = (val_ > val[o]);
+        Delete(ch[o][d], val_); push_up(o);
+    }
+
+    int Rank(int o, int val_) {
+        if (val[o] == val_) return cnt_sum[ls(o)];
+        int d = (val_ > val[o]);
+        return d * (cnt_sum[ls(o)] + cnt[o]) + Rank(ch[o][d], val_);
+    }
+
+    int Kth(int o, int k) {
+        int res = k - cnt_sum[ls(o)];
+        if (res <= 0) return Kth(ls(o), k);
+        if (res > cnt[o]) return Kth(rs(o), res - cnt[o]);
+        return val[o];
+    }
+
+    int Pre(int o, int val_) {
+        int res = -inf, d = (val[o] < val_);
+        if (!o) return res; if (d) res = val[o];
+        return max(res, Pre(ch[o][d], val_));
+    }
+
+    int Suf(int o, int val_) {
+        int res = inf, d = (val[o] > val_);
+        if (!o) return res; if (d) res = val[o];
+        return min(res, Suf(ch[o][val_ >= val[o]], val_));
+    }
+} T;
+
+//val必须存在treap中才能调用T.Rank
+//必须存在第val_大才能调用T.Kth
+int rt = 0;
+int main () {
+    srand(time(0));
+    int n = read();
+    while (n --) {
+        int opt = read(), val_ = read();
+        if (opt == 1) T.Insert(rt, val_);
+        if (opt == 2) T.Delete(rt, val_);
+        if (opt == 3) printf ("%d\n", T.Rank(rt, val_) + 1);
+        if (opt == 4) printf ("%d\n", T.Kth(rt, val_) );
+        if (opt == 5) printf ("%d\n", T.Pre(rt, val_) );
+        if (opt == 6) printf ("%d\n", T.Suf(rt, val_) );
+    }
+    return 0;
+}
+
+//整数输入挂
+inline int read() {
+    int x = 0, fh = 1; char ch = getchar();
+    for (; !isdigit(ch); ch = getchar()) if (ch == '-') fh = -1;
+    for (; isdigit(ch); ch = getchar()) x = (x * 10) + (ch ^ 48);
+    return x * fh;
+}
 
 
+//单调栈
+int n;
+int h[100005];
+int L[100005];
+int R[100005];
+int st[100005];
+void getLR()
+{
+    int pos=0;
+    L[1]=1;
+    st[++pos] = 1;
+    for(int i=2;i<=n;i++){
+        while(pos>=1&&h[st[pos]]>=h[i])pos--;
+        L[i]=pos==0?1:st[pos]+1;
+        st[++pos]=i;
+
+    }
+    pos=0;
+    R[n]=n;
+    st[++pos] = n;
+    for(int i=n-1;i>=1;i--){
+        while(pos>=1&&h[st[pos]]>=h[i])pos--;
+        R[i]=pos==0?n:st[pos]-1;
+        st[++pos]=i;
+    }
+}
 
 
 
