@@ -179,35 +179,46 @@ int log_mod(int a,int b,int n) {
 //树状数组
 int sum(int x){
     int ret = 0;
-    whiel(x>0){
+    while(x>0){
         ret += C[x];
         x -= lowbit(x);
     }
     return ret;
 }
 void add(int x,int d){
-    while(c<=n){
+    while(x<=n){
         C[x] += d;
         x += lowbit(x);
     }
 }
 
 //RMQ ST算法
-void RMQ_init(const vector<int> &A){
+int d1[100005][20];
+void RMQ_init1(const vector<int> &A){
     int n= A.size();
-    for(int i=0;i<n;i++)d[i][0] = A[i];
-    for(int i=0;i<n;i++)
-    for(int j=i;(1<<j)<=n;j++)
-        for(int i=0;i+(1<<j)-1<n;i++)
-            d[i][j] = min(d[i][j-1],d[i+(1<<(j-1))][j-1]);
+    for(int i=0;i<=n;i++) d1[i][0]=A[i];
+    int t=log(n)/log(2)+1;
+    for(int j=1;j<t;j++)
+        for(int i=0;i<=n-(1<<j)+1;i++)
+            d1[i][j]=min(d1[i][j-1],d1[i+(1<<(j-1))][j-1]);
 }
-int RMQ(int L,int R){//查询区间从零开始计数的
-    int k=0;
-    while((1<<(k+1)) <= R-L+1)k++;
-    return min(d[L][k], d[R-(1<<k)+1][k]);
+int RMQ_min(int l,int r){//查询区间从零开始计数的
+    int k=log(r-l+1)/log(2);
+    return min(d1[l][k],d1[r-(1<<k)+1][k]);
 }
-
-
+int d2[100005][20];
+void RMQ_init2(const vector<int> &A){
+    int n= A.size();
+    for(int i=0;i<=n;i++) d2[i][0]=A[i];
+    int t=log(n)/log(2)+1;
+    for(int j=1;j<t;j++)
+        for(int i=0;i<=n-(1<<j)+1;i++)
+            d2[i][j]=max(d2[i][j-1],d2[i+(1<<(j-1))][j-1]);
+}
+int RMQ_max(int l,int r){//查询区间从零开始计数的
+    int k=log(r-l+1)/log(2);
+    return max(d2[l][k],d2[r-(1<<k)+1][k]);
+}
 
 
 //线段树,单点修改，查询区间最小值
