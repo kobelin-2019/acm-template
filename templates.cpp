@@ -778,6 +778,44 @@ void getLR()
     }
 }
 
+//公式法求组合数
+int mul(int x, int y)
+{
+    return (x * 1ll * y) % MOD;
+}
+
+int binpow(int x, int y)
+{
+    int z = 1;
+    while(y > 0)
+    {
+        if(y % 2 == 1)
+            z = mul(z, x);
+        x = mul(x, x);
+        y /= 2;
+    }
+    return z;
+}
+
+int inv(int x)
+{
+    return binpow(x, MOD - 2);
+}
+
+int divide(int x, int y)
+{
+    return mul(x, inv(y));
+}
+
+int C(int n, int k)
+{
+
+    if(k > n) return 0;
+    if(k==n)return 1;
+    if(k == 0)return 1;
+    return divide(fact[n], mul(fact[n - k], fact[k]));
+}
+
 
 
 
